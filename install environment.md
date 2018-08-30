@@ -3,7 +3,7 @@
 ## Installing necessary packages ##
 >apt update  
 >apt install xauth htop curl apache2 libapache2-mod-fcgid libapache2-mod-php7.0 php7.0-cgi php7.0-gd php7.0-sqlite php7.0-curl php7.0-xmlrpc python-simplejson software-properties-common
-<br>
+
 ## php7 configuration
 <br>
 > cat > /etc/apache2/conf-available/php.conf << EOF 
@@ -74,7 +74,7 @@
 >         service apache2 restart  
 >          mkdir /home/data  
 >         mkdir /home/data/cache/
-<br>
+
 ## QGIS Server
 镜像源在https://qgis.org/en/site/forusers/alldownloads.html#debian-ubuntu
 > cat /etc/apt/sources.list.d/debian-gis.list
@@ -85,10 +85,10 @@
 > sudo apt-get install qgis-server python-qgis
 ## 测试QGIS SERVER安装成功
 > /usr/lib/cgi-bin/qgis_mapserv.fcgi
-<br>
+
 ## QGIS
 参考http://htmlpreview.github.io/?https://raw.github.com/qgis/QGIS/master/doc/INSTALL.html
-<br>
+
 ## install Lizmap Web Client
 安装包在https://github.com/3liz/lizmap-web-client/releases/
 <br>
