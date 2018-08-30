@@ -7,70 +7,70 @@
 ## php7 configuration
 
 > cat > /etc/apache2/conf-available/php.conf << EOF 
->> <Directory /usr/share> 
+>>     <Directory /usr/share> 
 >>>      AddHandler fcgid-script .php  
->>      FCGIWrapper /usr/lib/cgi-bin/php5 .php  
->>      Options ExecCGI FollowSymlinks Indexes  
+>>>      FCGIWrapper /usr/lib/cgi-bin/php5 .php  
+>>>      Options ExecCGI FollowSymlinks Indexes  
 
->></Directory >  
+>>     </Directory >  
 
->> <Files ~ (\.php)>  
+>>     <Files ~ (\.php)>  
 >>>      AddHandler fcgid-script .php  
->>      FCGIWrapper /usr/lib/cgi-bin/php5 .php  
->>      Options +ExecCGI  
->>      allow from all  
+>>>      FCGIWrapper /usr/lib/cgi-bin/php5 .php  
+>>>      Options +ExecCGI  
+>>>      allow from all  
 
->> </Files >  
+>>     </Files >  
 
 > EOF  
 > a2enconf php
 ## mpm-worker configuration
 
 > nano /etc/apache2/apache2.conf # aller au worker et mettre par exemple
->> < IfModule mpm_worker_module >
+>>     < IfModule mpm_worker_module >
 >>>      StartServers       4  
->>      MinSpareThreads    25  
->>      MaxSpareThreads    100  
->>      ThreadLimit          64  
->>      ThreadsPerChild      25  
->>      MaxClients        150  
->>      MaxRequestsPerChild   0  
+>>>      MinSpareThreads    25  
+>>>      MaxSpareThreads    100  
+>>>      ThreadLimit          64  
+>>>      ThreadsPerChild      25  
+>>>      MaxClients        150  
+>>>      MaxRequestsPerChild   0  
 
->> </IfModule >
+>>     </IfModule >
 
 ## mod_fcgid configuration
 
 > nano /etc/apache2/mods-enabled/fcgid.conf
->> <IfModule mod_fcgid.c>
+>>     <IfModule mod_fcgid.c>
 >>>      AddHandler    fcgid-script .fcgi  
->>      FcgidConnectTimeout 300  
->>      FcgidIOTimeout 300  
->>      FcgidMaxProcessesPerClass 50  
->>      FcgidMinProcessesPerClass 20  
->>      FcgidMaxRequestsPerProcess 500  
->>      IdleTimeout   300  
->>      BusyTimeout   300  
+>>>      FcgidConnectTimeout 300  
+>>>      FcgidIOTimeout 300  
+>>>      FcgidMaxProcessesPerClass 50  
+>>>      FcgidMinProcessesPerClass 20  
+>>>      FcgidMaxRequestsPerProcess 500  
+>>>      IdleTimeout   300  
+>>>      BusyTimeout   300  
 
->> </IfModule >
+>>     </IfModule >
 ## Setting the compression
 
 > nano /etc/apache2/conf-available/mod_deflate.conf
->> <Location / >  
+>>     <Location / >  
 >>>        # Insert filter
->>        SetOutputFilter DEFLATE
->>        # Netscape 4.x encounters some problems ...
->>        BrowserMatch ^Mozilla/4 gzip-only-text/html
->>        # Netscape 4.06-4.08 encounter even more problems
->>        BrowserMatch ^Mozilla/4\.0[678] no-gzip
->>        # MSIE pretends it is Netscape, but all is well
->>        BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
->>        # Do not compress images
->>        SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png)$ no-gzip dont-vary
->>        # Ensure that proxy servers deliver the right content
->>        Header append Vary User-Agent env=!dont-vary
+>>>        SetOutputFilter DEFLATE
+>>>        # Netscape 4.x encounters some problems ...
+>>>        BrowserMatch ^Mozilla/4 gzip-only-text/html
+>>>        # Netscape 4.06-4.08 encounter even more problems
+>>>        BrowserMatch ^Mozilla/4\.0[678] no-gzip
+>>>        # MSIE pretends it is Netscape, but all is well
+>>>        BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
+>>>        # Do not compress images
+>>>        SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png)$ no-gzip dont-vary
+>>>        # Ensure that proxy servers deliver the right content
+>>>        Header append Vary User-Agent env=!dont-vary
 
->> </Location >
-<br>
+>>     </Location >
+
 >         service apache2 restart  
 >          mkdir /home/data  
 >         mkdir /home/data/cache/
@@ -79,7 +79,7 @@
 镜像源在https://qgis.org/en/site/forusers/alldownloads.html#debian-ubuntu
 > cat /etc/apt/sources.list.d/debian-gis.list
 >>     deb http://qgis.org/ubuntu xenial main  
->     deb-src http://qgis.org/ubuntu xenial main
+>>     deb-src http://qgis.org/ubuntu xenial main
 
 > sudo apt-get update  
 > sudo apt-get install qgis-server python-qgis
