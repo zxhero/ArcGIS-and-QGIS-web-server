@@ -5,7 +5,7 @@
 >apt install xauth htop curl apache2 libapache2-mod-fcgid libapache2-mod-php7.0 php7.0-cgi php7.0-gd php7.0-sqlite php7.0-curl php7.0-xmlrpc python-simplejson software-properties-common
 
 ## php7 configuration
-<br>
+
 > cat > /etc/apache2/conf-available/php.conf << EOF 
 >> <Directory /usr/share> 
 >>>      AddHandler fcgid-script .php  
@@ -25,7 +25,7 @@
 > EOF  
 > a2enconf php
 ## mpm-worker configuration
-<br>
+
 > nano /etc/apache2/apache2.conf # aller au worker et mettre par exemple
 >> < IfModule mpm_worker_module >
 >>>      StartServers       4  
@@ -39,7 +39,7 @@
 >> </IfModule >
 
 ## mod_fcgid configuration
-<br>
+
 > nano /etc/apache2/mods-enabled/fcgid.conf
 >> <IfModule mod_fcgid.c>
 >>>      AddHandler    fcgid-script .fcgi  
@@ -53,7 +53,7 @@
 
 >> </IfModule >
 ## Setting the compression
-<br>
+
 > nano /etc/apache2/conf-available/mod_deflate.conf
 >> <Location / >  
 >>>        # Insert filter
