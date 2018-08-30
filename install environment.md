@@ -1,6 +1,6 @@
 # 在ubuntu 16-04安装QGIS SEVER+Lizmap+QGIS
 <br>
-### 以下操作在root权限下完成
+## 以下操作在root权限下完成
 <br>
 ## Installing necessary packages
 >apt update  
