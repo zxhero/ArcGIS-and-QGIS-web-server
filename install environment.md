@@ -1,8 +1,6 @@
 # 在ubuntu 16-04安装QGIS SEVER+Lizmap+QGIS
-<br>
 ## 以下操作在root权限下完成
-<br>
-## Installing necessary packages
+## Installing necessary packages ##
 >apt update  
 >apt install xauth htop curl apache2 libapache2-mod-fcgid libapache2-mod-php7.0 php7.0-cgi php7.0-gd php7.0-sqlite php7.0-curl php7.0-xmlrpc python-simplejson software-properties-common
 <br>
