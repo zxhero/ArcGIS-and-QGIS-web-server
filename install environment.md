@@ -7,27 +7,25 @@
 ## php7 configuration
 
 > cat > /etc/apache2/conf-available/php.conf << EOF 
->>     <Directory /usr/share> 
+>>>     <Directory /usr/share> 
 >>>      AddHandler fcgid-script .php  
 >>>      FCGIWrapper /usr/lib/cgi-bin/php5 .php  
 >>>      Options ExecCGI FollowSymlinks Indexes  
+>>>     </Directory >  
 
->>     </Directory >  
-
->>     <Files ~ (\.php)>  
+>>>     <Files ~ (\.php)>  
 >>>      AddHandler fcgid-script .php  
 >>>      FCGIWrapper /usr/lib/cgi-bin/php5 .php  
 >>>      Options +ExecCGI  
 >>>      allow from all  
-
->>     </Files >  
+>>>     </Files >  
 
 > EOF  
 > a2enconf php
 ## mpm-worker configuration
 
 > nano /etc/apache2/apache2.conf # aller au worker et mettre par exemple
->>     < IfModule mpm_worker_module >
+>>>     < IfModule mpm_worker_module >
 >>>      StartServers       4  
 >>>      MinSpareThreads    25  
 >>>      MaxSpareThreads    100  
@@ -35,13 +33,12 @@
 >>>      ThreadsPerChild      25  
 >>>      MaxClients        150  
 >>>      MaxRequestsPerChild   0  
-
->>     </IfModule >
+>>>     </IfModule >
 
 ## mod_fcgid configuration
 
 > nano /etc/apache2/mods-enabled/fcgid.conf
->>     <IfModule mod_fcgid.c>
+>>>     <IfModule mod_fcgid.c>
 >>>      AddHandler    fcgid-script .fcgi  
 >>>      FcgidConnectTimeout 300  
 >>>      FcgidIOTimeout 300  
@@ -50,12 +47,11 @@
 >>>      FcgidMaxRequestsPerProcess 500  
 >>>      IdleTimeout   300  
 >>>      BusyTimeout   300  
-
->>     </IfModule >
+>>>     </IfModule >
 ## Setting the compression
 
 > nano /etc/apache2/conf-available/mod_deflate.conf
->>     <Location / >  
+>>>     <Location / >  
 >>>        # Insert filter
 >>>        SetOutputFilter DEFLATE
 >>>        # Netscape 4.x encounters some problems ...
@@ -68,11 +64,10 @@
 >>>        SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png)$ no-gzip dont-vary
 >>>        # Ensure that proxy servers deliver the right content
 >>>        Header append Vary User-Agent env=!dont-vary
-
->>     </Location >
+>>>     </Location >
 
 >         service apache2 restart  
->          mkdir /home/data  
+>         mkdir /home/data  
 >         mkdir /home/data/cache/
 
 ## QGIS Server
@@ -82,12 +77,22 @@
 >>     deb-src http://qgis.org/ubuntu xenial main
 
 > sudo apt-get update  
-> sudo apt-get install qgis-server python-qgis
+> sudo apt-get install qgis-server python-qgis  
+
+若出现GPG ERROR
+>    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys CAEB3DC3BDF7FB45
 ## 测试QGIS SERVER安装成功
 > /usr/lib/cgi-bin/qgis_mapserv.fcgi
 
 ## QGIS
-参考http://htmlpreview.github.io/?https://raw.github.com/qgis/QGIS/master/doc/INSTALL.html
+参考http://htmlpreview.github.io/?https://raw.github.com/qgis/QGIS/master/doc/INSTALL.html<br>
+启动时报错 couldn't load sip
+>    pip3  install sip
+
+启动时报错 couldn't load pyqt
+>    apt-get -y install python3-pyqt5.qtwebkit libqt5webkit5-dev  
+>    从source编译的版本仍无解决方案，建议删除后重新  
+>    apt-get install qgis python-qgis qgis-plugin-grass
 
 ## install Lizmap Web Client
 安装包在https://github.com/3liz/lizmap-web-client/releases/
