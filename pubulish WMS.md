@@ -1,6 +1,6 @@
-#在Lizmap web client发布QGIS project
+# 在Lizmap web client发布QGIS project
 
-##Generate QGIS WMS project
+## Generate QGIS WMS project
 安装lizmap plugin<br>
 >    'Plugin' manu -> 'Manage and Install Plugins'
 
@@ -22,7 +22,7 @@
 >    You can set the 'Initial map extent' to the 'map canvas' option.  
 >    保存后，你可以看到在qgis工程目录下有.qgs.cfg文件
 
-##Lizmap web client configuration
+## Lizmap web client configuration
 登陆
 >    login: admin  
 >    password: admin  
@@ -39,7 +39,7 @@
 
 >    you select the 'Project' button (top right) you should see your two projects listed one under the other.
 
-##references
+## references
 >    https://docs.3liz.com/en/publish/publish_with_ftp.html  
 >    https://docs.qgis.org/2.18/en/docs/user_manual/working_with_ogc/server/index.html  
 >    http://www.paulshapley.com/2016/08/qgis-serverinstalling-qgis-lizmap.html
