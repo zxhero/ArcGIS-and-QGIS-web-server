@@ -1,0 +1,94 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>ArcGIS DevLabs: JavaScript Starter App</title>
+  <style>
+    html, body, #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  .embed-container {position: relative; padding-bottom: 80%; height: 0; max-width: 100%;} 
+  .embed-container iframe, 
+  .embed-container object, 
+  .embed-container iframe{position: absolute; top: 0; left: 0; width: 100%; height: 100%;} small{position: absolute; z-index: 40; bottom: 0; margin-bottom: -15px;}
+  </style>
+  
+  <link rel="stylesheet" href="https://js.arcgis.com/4.8/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.8/"></script>
+  
+  <script>  
+    require([
+      "esri/WebMap",
+      "esri/views/MapView",
+	  "esri/Graphic",
+      "esri/geometry/Point",
+      "esri/symbols/SimpleMarkerSymbol",
+      "dojo/domReady!"
+    ], function(WebMap, MapView, Graphic, Point, SimpleMarkerSymbol) {
+
+      var webmap = new WebMap({
+        portalItem: {
+        id: "dae2fdab88534076b467278a28d4f31d"
+       }
+      });
+
+      var view = new MapView({
+        container: "viewDiv",
+        map: webmap,
+        center: [103.819836,1.352083],
+        //zoom: 10
+      });
+	  view.on("click", senddata);
+	    // Create a point
+  var point = new Point({
+    longitude: 103.819836,
+    latitude: 1.352083
+  });
+
+  // Create a symbol for drawing the point
+  var markerSymbol = new SimpleMarkerSymbol({
+    color: [0,0,128],
+    outline: { 
+      color: [255, 255, 255],
+      width: 1
+    }
+  });
+  
+  // Create attributes
+  /*var attributes = {
+    Name: "I am a point",  // The name of the pipeline
+    Park: "Griffith Park",  // The owner of the pipeline
+    City: "Los Angeles"  // The length of the pipeline
+  };
+  
+  // Create popup template
+  var popupTemplate = {
+    title: "{Name}",
+    content: "I live in <b>{Park}</b> in the city of <b>{City}</b>."
+  };*/
+
+  // Create a graphic and add the geometry and symbol to it
+  var pointGraphic = new Graphic({
+    geometry: point,
+    symbol: markerSymbol
+    //attributes: attributes,
+    //popupTemplate: popupTemplate
+  });
+    
+  view.graphics.add(pointGraphic);
+      
+    });
+	function senddata()
+	{
+	document.getElementById("text").write("test");
+	}
+  </script>
+</head>
+<body>
+  <div id="viewDiv" onclick="senddata()"></div>
+  <input type="text" id="field1" value="Hello World!"><br>
+</body>
+</html>

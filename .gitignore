@@ -1,4 +1,6 @@
 *.pptx
 *.7z
 gmap-html/
-
+arcgis/arcgis_js_v48_api/
+arcgis/arcgis_js_v48_sdk/
+arcgis/*.zip
