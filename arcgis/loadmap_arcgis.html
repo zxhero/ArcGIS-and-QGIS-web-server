@@ -20,6 +20,20 @@
   <script src="https://js.arcgis.com/4.8/"></script>
   
   <script>  
+	var request;
+  	var pointGraphic, point;
+  	let requestURL = '2018-01-01T00_00_00.txt';
+    request = new XMLHttpRequest();
+    request.open('GET', requestURL);
+    request.responseType = 'text';
+
+    request.send(null);
+    request.onload = handlejson;
+	var x;
+    var mapjson;
+	var mapobj;
+	var pointsXY;
+
     require([
       "esri/WebMap",
       "esri/views/MapView",
@@ -39,14 +53,10 @@
         container: "viewDiv",
         map: webmap,
         center: [103.819836,1.352083],
-        //zoom: 10
+        zoom: 20
       });
-	  view.on("click", senddata);
-	    // Create a point
-  var point = new Point({
-    longitude: 103.819836,
-    latitude: 1.352083
-  });
+	 // view.on("click", senddata);
+	    // Create a point,
 
   // Create a symbol for drawing the point
   var markerSymbol = new SimpleMarkerSymbol({
@@ -71,24 +81,33 @@
   };*/
 
   // Create a graphic and add the geometry and symbol to it
-  var pointGraphic = new Graphic({
-    geometry: point,
-    symbol: markerSymbol
-    //attributes: attributes,
-    //popupTemplate: popupTemplate
-  });
-    
-  view.graphics.add(pointGraphic);
-      
+
+
+  	for(x in pointsXY){
+		point = new Point({
+				longitude: pointsXY[x][0],
+				latitude: pointsXY[x][1]
+				});
+		pointGraphic = new Graphic({
+				geometry: point,
+				symbol: markerSymbol
+				//attributes: attributes,
+				//popupTemplate: popupTemplate
+				});
+		view.graphics.add(pointGraphic);
+  }
+       
     });
-	function senddata()
+	function handlejson()
 	{
-	document.getElementById("text").write("test");
+		mapjson = request.response;
+		mapobj = JSON.parse(mapjson);
+		pointsXY = mapobj.features[0].geometry.coordinates;
 	}
   </script>
 </head>
 <body>
-  <div id="viewDiv" onclick="senddata()"></div>
+  <div id="viewDiv"></div>
   <input type="text" id="field1" value="Hello World!"><br>
 </body>
 </html>

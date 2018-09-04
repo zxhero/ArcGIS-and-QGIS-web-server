@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>菜鸟教程(runoob.com)</title>
+</head>
+<body>
+	
+<p>点击下面的按钮，循环遍历对象 "person" 的属性。</p>
+<button onclick="myFunction()">点击这里</button>
+<p id="demo"></p>
+<p id="test"></p>
+<script>
+var request;
+function myFunction(){
+	
+	var person=[1,2,3]; 
+	//  var fso = new ActiveXObject("Scripting.FileSystemObject");
+	//var ts = fso.OpenTextFile("d:\\NUS\\arcgis\\2018-01-01T00_00_00.json", 1);
+	//var mapjson = ts.ReadAll();
+	
+	
+    let requestURL = '2018-01-01T00_00_00.txt';
+    request = new XMLHttpRequest();
+    request.open('GET', requestURL);
+    request.responseType = 'text';
+
+    request.send(null);
+    request.onload = handlejson;
+
+}
+
+function handlejson() {
+		var x;
+		var txt="";
+        var mapjson = request.response;
+		var mapobj = JSON.parse(mapjson);
+		var pointsXY = mapobj.features[0].geometry.coordinates;
+		for (x in pointsXY){
+			txt=txt + pointsXY[x][0] + pointsXY[x][1];
+		}
+		document.getElementById("test").innerHTML=mapjson;
+		document.getElementById("demo").innerHTML=txt;
+
+    };
+</script>
+	
+</body>
+</html>
