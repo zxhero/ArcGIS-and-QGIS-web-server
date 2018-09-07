@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+
+  <title>Query statistics by geometry - 4.8</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.8/esri/css/main.css">
+  <link rel="stylesheet" href="https://js.arcgis.com/4.8/dijit/themes/claro/claro.css">
+
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: "Avenir Next W00", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    #instructions {
+      width: 300px;
+      padding: 15px;
+    }
+  </style>
+
+  <script>
+    var dojoConfig = {
+      has: {
+        "esri-featurelayer-webgl": 1
+      }
+    };
+  </script>
+
+  <!-- Load the Chart.js library -->
+  <script src="https://js.arcgis.com/4.8/"></script>
+
+  <script>
+    require([
+      //"esri/WebMap",
+      "esri/widgets/Sketch/SketchViewModel",
+      "esri/geometry/Polyline",
+      "esri/geometry/Point",
+      "esri/Graphic",
+      "esri/Map",
+      //"esri/WebMap",
+      "esri/views/MapView",
+      "esri/layers/FeatureLayer",
+      "esri/layers/GraphicsLayer",
+      "esri/geometry/geometryEngine",
+      "esri/widgets/Expand",
+      "esri/widgets/Legend",
+      "esri/widgets/Search",
+      "esri/core/watchUtils",
+      "dojo/domReady!"
+    ], function(
+      SketchViewModel, Polyline, Point,
+      Graphic, Map, MapView, FeatureLayer, GraphicsLayer,
+      geometryEngine, Expand, Legend, Search, watchUtils,WebMap
+    ) {
+
+      let view, graphicsLayer, featureLayer, featureLayerView,
+        sketchViewModel, centerGraphic, edgeGraphic, polylineGraphic,
+        bufferGraphic, labelGraphic, chartExpand, instructionsExpand,
+        pausableWatchHandle;
+      const unit = "kilometers";
+
+      setUpView();
+
+
+      // called from setUpView() function after view is created and layers are created
+      function setUpSketch() {
+        sketchViewModel = new SketchViewModel({
+          view: view,
+          layer: graphicsLayer
+        });
+
+        // Listen to sketch view model's move events so that population pyramid chart
+        // is updated as the graphics are updated
+        sketchViewModel.on("move-start", bufferMoveHandler);
+        sketchViewModel.on("move", bufferMoveHandler);
+        sketchViewModel.on("move-complete", bufferMoveHandler);
+      }
+
+      /*********************************************************************
+       * Edge or center graphics are being moved. Recalculate the buffer with
+       * updated geometry information and run the query stats again.
+       *********************************************************************/
+      function bufferMoveHandler(event) {
+        // user is moving the CENTER graphic. Move the buffer polygon graphic,
+        // line graphic, center and edge point graphics to the pointer location
+        if (event.graphic.attributes && event.graphic.attributes.center) {
+          // center graphic is initially created when view loads at the view.center
+          // in drawBufferPolygon() function
+          centerGraphic.geometry = event.geometry;
+
+          const edgeScreenPoint = view.toScreen(edgeGraphic.geometry);
+          const adjustedGeometry = view.toMap(edgeScreenPoint.x + event.dx,
+            edgeScreenPoint.y + event.dy);
+          edgeGraphic.geometry = adjustedGeometry;
+
+          // updated vertices for the polyline
+          vertices = [
+            [centerGraphic.geometry.x, centerGraphic.geometry.y],
+            [adjustedGeometry.x, adjustedGeometry.y]
+          ];
+        }
+        // user is moving on the EDGE graphic. Resize the polyline graphic
+        // and recalculate the buffer polygon
+        else if (event.graphic.attributes && event.graphic.attributes.edge) {
+          // EdgeGraphic is initially created in drawBufferPolygon() function when view is loaded
+          edgeGraphic.geometry = event.geometry;
+          vertices = [
+            [centerGraphic.geometry.x, centerGraphic.geometry.y],
+            [edgeGraphic.geometry.x, edgeGraphic.geometry.y]
+          ];
+        }
+        // client-side stats query of features that intersect the buffer
+        calculateBuffer(vertices);
+      }
+
+      /*********************************************************************
+       * Edge or center point is being updated. Recalculate the buffer with
+       * updated geometry information.
+       *********************************************************************/
+      function calculateBuffer(vertices) {
+               // update the geometry of the polyline based on location of edge and center points
+        polylineGraphic.geometry = new Polyline({
+          paths: vertices,
+          spatialReference: view.spatialReference
+        });
+        // recalculate the polyline length and buffer polygon
+        const length = geometryEngine.geodesicLength(polylineGraphic.geometry,
+          unit);
+        const buffer = geometryEngine.geodesicBuffer(centerGraphic.geometry,
+          length, unit);
+
+        // query female and male age groups of the census tracts that intersect
+        // the buffer polygon on the client
+        /*queryLayerViewAgeStats(buffer).then(function(newData) {
+          // create a population pyramid chart from the returned result
+          updateChart(newData);
+        });*/
+
+        // label graphic shows the length of the polyline
+        labelGraphic.geometry = edgeGraphic.geometry;
+        labelGraphic.symbol.text = length.toFixed(2) + " kilometers";
+        bufferGraphic.geometry = buffer;
+      }
+
+      /*********************************************************************
+       * Spatial query the census tracts feature layer view for statistics
+       * using the updated buffer polygon.
+       *********************************************************************/
+      function queryLayerViewAgeStats(buffer) {
+      }
+
+      /*****************************************************************
+       * Listen to view.click event to update the center or edge graphic
+       *****************************************************************/
+      function setUpGraphicClickHandler() {
+        view.on("click", function(event) {
+          view.hitTest(event).then(function(response) {
+            const results = response.results;
+            // loop through results returned from hitTest
+            results.forEach(function(result) {
+              // call sketchViewModel.update method if point graphic is clicked
+              if (result.graphic.attributes.edge || result.graphic
+                .attributes.center) {
+                sketchViewModel.update(result.graphic);
+              }
+            });
+          });
+        });
+      }
+
+      /***************************************************
+       * Draw the buffer polygon when application loads or
+       * when user searches for a new location
+       **************************************************/
+      function drawBufferPolygon() {
+        // When pause() is called on the watch handle, the callback represented by the
+        // watch is no longer invoked, but is still available for later use
+        // this watch handle will be resumed when user searches for a new location
+        pausableWatchHandle.pause();
+
+        // initial location for the center, edge and polylines on the view
+        const viewCenter = view.center.clone();
+        const centerScreenPoint = view.toScreen(viewCenter);
+        const centerPoint = view.toMap(centerScreenPoint.x,
+          centerScreenPoint.y );
+        const edgePoint = view.toMap(centerScreenPoint.x + 120,
+          centerScreenPoint.y);
+        const APoint = view.toMap(centerScreenPoint.x, 
+          centerScreenPoint.y+120);
+        const BPoint = view.toMap(edgePoint.x, 
+          centerScreenPoint.y+120);
+        const vertices = [
+          [centerPoint.x, centerPoint.y],
+          //[edgePoint.x, edgePoint.y],
+          [BPoint.x, BPoint.y],
+          [APoint.x, APoint.y]
+          //[centerPoint.x, centerPoint.y]
+        ];
+
+        // drawBufferPolygon() function is called for the first time in app load. Create
+        // center, edge, polyline and buffer graphics for the first time
+        if (!centerGraphic) {
+          const polyline = new Polyline({
+            paths: vertices,
+            spatialReference: view.spatialReference
+          });
+
+          // get the length of the initial polyline and create buffer
+          const length = geometryEngine.geodesicLength(polyline, unit);
+          const buffer = geometryEngine.geodesicBuffer(centerPoint, length,
+            unit);
+          // create the graphics representing the line and buffer
+          centerGraphic = createGraphic(centerPoint, "center");
+          edgeGraphic = createGraphic(edgePoint, "handle");
+          polylineGraphic = createGraphic(polyline, "line");
+          bufferGraphic = createGraphic(buffer, "buffer");
+          AGraphic = createGraphic(APoint, "center");
+          labelGraphic = labelLength(edgePoint, length);
+          graphicsLayer.addMany([bufferGraphic, polylineGraphic,
+            centerGraphic, edgeGraphic, labelGraphic,AGraphic
+          ]);
+        }
+        // drawBufferPolygon() function ic called from search widget's search-complete event
+        // just move the center and edge graphics to the new location returned from search
+        else {
+          centerGraphic.geometry = centerPoint;
+          edgeGraphic.geometry = edgePoint;
+        }
+
+        // query features that intersect the buffer
+        calculateBuffer(vertices);
+      }
+
+      // Create an population pyramid chart for the census tracts
+      // that intersect the buffer polygon
+      // The chart is created using the Chart.js library
+
+      function updateChart(newData) {
+
+      }
+
+      function setUpView() {
+        const map = new Map({
+          basemap: "dark-gray"
+        });
+
+        view = new MapView({
+          container: "viewDiv",
+          map: map,
+          zoom: 12,
+          center: [103.819836,1.352083],
+          constraints: {
+            maxScale: 0,
+            minScale: 300000
+          }
+        });
+        /*const webmap = new WebMap({
+        portalItem: {
+        id: "dae2fdab88534076b467278a28d4f31d"
+       }
+      });
+
+       view = new MapView({
+        container: "viewDiv",
+        map: webmap,
+        center: [103.819836,1.352083],
+        zoom: 12,
+        constraints: {
+            maxScale: 0,
+            minScale: 300000
+          }
+      });*/
+        graphicsLayer = new GraphicsLayer();
+        /*featureLayer = new FeatureLayer({
+          portalItem: {
+            id: "83c37666a059480bb8a7cb73f449ff52"
+          },
+          outFields: ["*"]
+        });*/
+        map.addMany([graphicsLayer]);
+        view.whenLayerView(graphicsLayer).then(function(layerView) {
+          featureLayerView = layerView;
+          pausableWatchHandle = watchUtils.pausable(layerView,
+            "updating",
+            function(val) {
+              if (!val) {
+                drawBufferPolygon();
+              }
+            });
+        });
+
+       /* view.watch("focused", function(newValue) {
+          if (newValue) {
+            view.popup.close();
+          }
+        });*/
+
+        setUpSketch();
+        setUpGraphicClickHandler();
+      }
+
+      function createGraphic(geometry, symbolType) {
+        return symbolType === "handle" ? new Graphic({
+            geometry: geometry,
+            attributes: {
+              edge: "edge"
+            },
+            symbol: {
+              type: "simple-marker",
+              style: "circle",
+              size: 12,
+              color: [255, 0, 255],
+              outline: {
+                color: [255, 255, 255],
+                width: 1
+              }
+            }
+          }) :
+          symbolType === "center" ? new Graphic({
+            geometry: geometry,
+            attributes: {
+              center: "center"
+            },
+            symbol: {
+              type: "simple-marker",
+              style: "circle",
+              size: 12,
+              color: "#e7903c",
+              outline: {
+                color: [255, 255, 255],
+                width: 1
+              }
+            }
+          }) :
+          symbolType === "line" ? new Graphic({
+            geometry: geometry,
+            symbol: {
+              type: "simple-line",
+              color: [254, 254, 254, 1],
+              width: 2.5
+            }
+          }) :
+          new Graphic({
+            geometry: geometry,
+            symbol: {
+              type: "simple-fill",
+              color: [150, 150, 150, 0.2],
+              outline: {
+                color: "#FFEB00",
+                width: 2
+              }
+            }
+          })
+      }
+
+      //Label polyline with its length
+      function labelLength(geom, length) {
+        return graphic = new Graphic({
+          geometry: geom,
+          symbol: {
+            type: "text",
+            color: "#FFEB00",
+            text: length.toFixed(2) + " kilometers",
+            xoffset: 13,
+            yoffset: 3,
+            font: { // autocast as Font
+              size: 14,
+              family: "sans-serif"
+            }
+          }
+        });
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+  <div id="chartPanel">
+    <canvas id="chart" class="chart"></canvas>
+  </div>
+  <div id="instructions" class="esri-widget">
+    Click on the
+    <b>center</b> point and drag it to move the buffer. Click on the
+    <b>edge</b> point and drag it to resize the buffer.
+  </div>
+</body>
+
+</html>
