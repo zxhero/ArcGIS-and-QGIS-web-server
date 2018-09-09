@@ -65,7 +65,7 @@
 
       let view, graphicsLayer, featureLayer, featureLayerView,
         sketchViewModel, centerGraphic, edgeGraphic, polylineGraphic,
-        bufferGraphic, labelGraphic, chartExpand, instructionsExpand,
+        bufferGraphic, chartExpand, instructionsExpand,
         pausableWatchHandle;
       const unit = "kilometers";
 
@@ -147,8 +147,8 @@
         });*/
 
         // label graphic shows the length of the polyline
-        labelGraphic.geometry = edgeGraphic.geometry;
-        labelGraphic.symbol.text = length.toFixed(2) + " kilometers";
+        //labelGraphic.geometry = edgeGraphic.geometry;
+        //labelGraphic.symbol.text = length.toFixed(2) + " kilometers";
         bufferGraphic.geometry = buffer;
       }
 
@@ -224,10 +224,10 @@
           edgeGraphic = createGraphic(edgePoint, "handle");
           polylineGraphic = createGraphic(polyline, "line");
           bufferGraphic = createGraphic(buffer, "buffer");
-          AGraphic = createGraphic(APoint, "center");
-          labelGraphic = labelLength(edgePoint, length);
+          AGraphic = createGraphic(APoint, "handle");
+          //labelGraphic = labelLength(edgePoint, length);
           graphicsLayer.addMany([bufferGraphic, polylineGraphic,
-            centerGraphic, edgeGraphic, labelGraphic,AGraphic
+            centerGraphic, edgeGraphic,AGraphic
           ]);
         }
         // drawBufferPolygon() function ic called from search widget's search-complete event
@@ -289,7 +289,7 @@
         });*/
         map.addMany([graphicsLayer]);
         view.whenLayerView(graphicsLayer).then(function(layerView) {
-          featureLayerView = layerView;
+          //featureLayerView = layerView;
           pausableWatchHandle = watchUtils.pausable(layerView,
             "updating",
             function(val) {
