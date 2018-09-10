@@ -29,6 +29,8 @@
       "esri/Graphic",
       "esri/geometry/Polygon",
       "esri/geometry/geometryEngine",
+	  "esri/geometry/Geometry",
+	  "esri/geometry/support/webMercatorUtils",
 
       "dojo/domReady!"
     ], function(
@@ -36,9 +38,12 @@
       Map, MapView,
       Graphic,
       Polygon,
-      geometryEngine
+      geometryEngine,
+	  Geometry,
+	  webMercatorUtils
     ) {
       var is_draw_polygon = 0;
+	  var record_polygon;
       var map = new Map({
         basemap: "streets"
       });
@@ -47,6 +52,7 @@
         container: "viewDiv",
         map: map,
         center: [103.819836,1.352083],
+		//center: [115.53941813315932,1.5236165131940242],
         zoom: 12
       });
 
@@ -81,7 +87,9 @@
       });
       
       function sendPolygonData(view){
-        var json_data = JSON.stringify(view.graphics.toJSON());
+		//var 
+		var switch_vertices = webMercatorUtils.webMercatorToGeographic(record_polygon);
+        var json_data = JSON.stringify(switch_vertices.toJSON());
 		//var json_data = "hellow zhhero";
         
 		var xhttp = new XMLHttpRequest();
@@ -124,13 +132,13 @@
       // to provide a visual feedback to users as they are drawing a polygon
       function drawPolygon(event) {
         var vertices = event.vertices;
-
+		//document.getElementById("test").innerHTML = webMercatorUtils.webMercatorToGeographic(vertices);
         //remove existing graphic
         view.graphics.removeAll();
 
         // create a new polygon
         var polygon = createPolygon(vertices);
-
+		record_polygon = polygon;
         // create a new graphic representing the polygon, add it to the view
         var graphic = createGraphic(polygon);
         view.graphics.add(graphic);
