@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-  <title>Taxi map by ZHANG XU</title>
+  <title>Draw polygon and points - Zhang Xu</title>
 
   <style>
     html,
@@ -31,7 +31,8 @@
       "esri/geometry/geometryEngine",
 	  "esri/geometry/Geometry",
 	  "esri/geometry/support/webMercatorUtils",
-
+	"esri/geometry/Point",
+	"esri/symbols/SimpleMarkerSymbol",
       "dojo/domReady!"
     ], function(
       Draw,
@@ -40,7 +41,9 @@
       Polygon,
       geometryEngine,
 	  Geometry,
-	  webMercatorUtils
+	  webMercatorUtils,
+	Point, 
+	SimpleMarkerSymbol
     ) {
       var is_draw_polygon = 0;
 	  var record_polygon;
@@ -52,7 +55,6 @@
         container: "viewDiv",
         map: map,
         center: [103.819836,1.352083],
-		//center: [115.53941813315932,1.5236165131940242],
         zoom: 12
       });
 
@@ -79,7 +81,10 @@
             is_draw_polygon = 0; 
           }
         });
-        
+
+        // *******************
+        // send data button
+        // *******************        
         var sendPolygonButton = document.getElementById("send-polygon");
         sendPolygonButton.addEventListener("click",function(){
           sendPolygonData(view);
@@ -87,20 +92,55 @@
       });
       
       function sendPolygonData(view){
-		//var 
+		var myDate = new Date(); 
 		var switch_vertices = webMercatorUtils.webMercatorToGeographic(record_polygon);
-        var json_data = JSON.stringify(switch_vertices.toJSON());
-		//var json_data = "hellow zhhero";
+        	var send_vertices = {
+			rings: switch_vertices.rings,
+			start_time: myDate.toLocaleString(),
+			end_time: "0"
+		};
+		var json_data = JSON.stringify(send_vertices);
         
 		var xhttp = new XMLHttpRequest();
+		// handle feed back data
+		var mapjson;
+	        var mapobj;
+        	var pointsXY;
+		var x;
+		var pointGraphic, point;
+
+		var markerSymbol = new SimpleMarkerSymbol({
+   			color: [0,0,128],
+			outline: { 
+      			color: [255, 255, 255],
+      			width: 1
+    		}
+ 		});
+
 		xhttp.onreadystatechange = function() {
 			if (this.readyState == 4 && this.status == 200) {
 				document.getElementById("test").innerHTML = this.responseText;
-				//alert
+				
+				mapjson = this.responseText;
+                		mapobj = JSON.parse(mapjson);
+               			 pointsXY = mapobj.coordinates;
+			//	view.graphics.removeAll();
+				for(x in pointsXY){
+                	point = new Point({
+                        longitude: pointsXY[x][0],
+                        latitude: pointsXY[x][1]
+                    });
+                	pointGraphic = new Graphic({
+                        geometry: point,
+                        symbol: markerSymbol
+                    });
+                	view.graphics.add(pointGraphic);
+				}
 			}
 		};
+		
+		//send data to back-end
 		var transfer_data = 'vertices='+json_data;
-		document.getElementById("test").innerHTML = transfer_data;
 		xhttp.open("POST", "handle_vertices.php", true);
 		xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 		xhttp.send(transfer_data);
